@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>部活動活動記録アプリ - clubapp</title>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (コンソール警告ログ抑制設定を追加) -->
+    <script>
+        // Tailwindのプロダクション警告ログを抑制
+        window.tailwind = { config: { suppressDeprecationWarnings: true } };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons with crossorigin attributes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Chart.js -->
@@ -33,11 +36,10 @@
 </head>
 <body class="text-slate-700 min-h-screen flex flex-col justify-between">
 
-    <!-- 1. Googleログイン必須ガード画面 -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-sky-100 transform transition-all">
             <div class="w-20 h-20 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-sky-500/30">
-                <i class="fa-solid fa-graduation-cap text-4xl text-white"></i>
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
             </div>
             <h1 class="text-2xl font-black text-slate-800 mb-2">部活動 活動記録ノート</h1>
             <p class="text-xs text-slate-500 mb-8 leading-relaxed">
@@ -57,15 +59,13 @@
             <!-- ドメイン未承認エラー用の案内表示エリア -->
             <div id="unauthorizedDomainNotice" class="hidden mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800">
                 <p class="font-bold flex items-center gap-1.5 text-amber-900 mb-1">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                    承認されていないドメインです
+                    ⚠️ 承認されていないドメインです
                 </p>
                 <p class="text-[11px] leading-relaxed text-amber-700 mb-2">
                     Firebase Console の Authentication &gt; 設定 &gt; 承認済みドメイン に現在のドメインを追加するか、テスト用ログインをご利用ください。
                 </p>
                 <button id="testUserLoginBtn" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition text-xs flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-user-check"></i>
-                    テスト用ユーザーとしてログイン (プレビュー用)
+                    👤 テスト用ユーザーとしてログイン (プレビュー用)
                 </button>
             </div>
 
@@ -73,12 +73,11 @@
         </div>
     </div>
 
-    <!-- ヘッダー -->
     <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center space-x-3">
                 <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                    <i class="fa-solid fa-clipboard-list text-2xl text-sky-200"></i>
+                    <svg class="w-6 h-6 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                 </div>
                 <div>
                     <h1 class="text-lg md:text-xl font-bold tracking-wide">部活動 活動記録アプリ</h1>
@@ -91,21 +90,19 @@
                 <img id="userAvatar" src="" class="w-7 h-7 rounded-full border border-white" alt="User">
                 <span id="userName" class="text-xs font-semibold text-white truncate max-w-[120px]">---</span>
                 <button id="logoutBtn" title="ログアウト" class="text-xs bg-red-500/80 hover:bg-red-600 px-2.5 py-1 rounded-full text-white font-medium transition">
-                    <i class="fa-solid fa-right-from-bracket"></i> ログアウト
+                    ログアウト
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- メインコンテンツ -->
     <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- 左側：5項目入力フォーム -->
         <section class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-sky-100 p-5 self-start">
             <div class="border-b border-sky-100 pb-3 mb-4 flex items-center justify-between">
                 <h2 class="text-base font-bold text-blue-900 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square text-sky-500"></i>
-                    新しい活動を記録する
+                    ✏️ 新しい活動を記録する
                 </h2>
                 <span class="text-[10px] font-bold px-2 py-0.5 bg-sky-100 text-sky-800 rounded-full">必須5項目</span>
             </div>
@@ -115,7 +112,7 @@
                 <!-- 1. 部活動名 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1 flex items-center justify-between">
-                        <span><i class="fa-solid fa-users text-sky-500 mr-1"></i> 1. 部活動名 <span class="text-red-500">*</span></span>
+                        <span>👥 1. 部活動名 <span class="text-red-500">*</span></span>
                     </label>
                     <input type="text" id="inputClubName" placeholder="例: サッカー部, 吹奏楽部" required
                         class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800 bg-sky-50/20">
@@ -125,14 +122,14 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">
-                            <i class="fa-regular fa-calendar-days text-sky-500 mr-1"></i> 2. 活動日 <span class="text-red-500">*</span>
+                            📅 2. 活動日 <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="inputDate" required
                             class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-600 mb-1">
-                            <i class="fa-solid fa-user-group text-sky-500 mr-1"></i> 参加人数（名）
+                            👨‍👩‍👧‍👦 参加人数（名）
                         </label>
                         <input type="number" id="inputMembers" min="1" value="15" placeholder="15"
                             class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800">
@@ -142,7 +139,7 @@
                 <!-- 3. 活動区分 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">
-                        <i class="fa-solid fa-tag text-sky-500 mr-1"></i> 3. 活動区分 <span class="text-red-500">*</span>
+                        🏷️ 3. 活動区分 <span class="text-red-500">*</span>
                     </label>
                     <select id="inputCategory" required
                         class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800 bg-white">
@@ -158,7 +155,7 @@
                 <!-- 4. 本日のテーマ・目標 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">
-                        <i class="fa-solid fa-bullseye text-sky-500 mr-1"></i> 4. 本日のテーマ・目標 <span class="text-red-500">*</span>
+                        🎯 4. 本日のテーマ・目標 <span class="text-red-500">*</span>
                     </label>
                     <input type="text" id="inputTitle" placeholder="例: ショートパスの精度向上と声かけ徹底" required
                         class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800 placeholder:text-slate-300">
@@ -167,7 +164,7 @@
                 <!-- 5. 主な活動内容 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">
-                        <i class="fa-solid fa-list-check text-sky-500 mr-1"></i> 5. 具体的な活動内容 <span class="text-red-500">*</span>
+                        📝 5. 具体的な活動内容 <span class="text-red-500">*</span>
                     </label>
                     <textarea id="inputContent" rows="3" placeholder="・ウォームアップ（20分）&#10;・ミニゲーム4対4&#10;・戦術確認ミーティング" required
                         class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800 placeholder:text-slate-300"></textarea>
@@ -175,28 +172,25 @@
 
                 <!-- 記録者（自動取得） -->
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs text-slate-500 flex items-center justify-between">
-                    <span><i class="fa-solid fa-id-badge text-sky-500 mr-1"></i> 記録者 (自動設定):</span>
+                    <span>🪪 記録者 (自動設定):</span>
                     <span id="formReporterName" class="font-bold text-slate-700">ログイン中ユーザー</span>
                 </div>
 
                 <!-- 登録ボタン -->
                 <button type="submit" id="submitBtn"
                     class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>活動記録を登録する</span>
+                    <span>☁️ 活動記録を登録する</span>
                 </button>
             </form>
         </section>
 
-        <!-- 右側：データ一覧・推移グラフ・検索フィルター -->
         <section class="lg:col-span-7 flex flex-col gap-5">
 
             <!-- 参加人数推移グラフ -->
             <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-4">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-chart-line text-sky-500"></i>
-                        参加人数の推移 (直近記録)
+                        📈 参加人数の推移 (直近記録)
                     </h3>
                     <span class="text-[10px] text-slate-400">リアルタイム反映</span>
                 </div>
@@ -208,8 +202,7 @@
             <!-- フィルター設定 -->
             <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-4 flex flex-wrap gap-3 items-center justify-between">
                 <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                    <i class="fa-solid fa-filter text-sky-500"></i>
-                    <span>絞り込み・検索</span>
+                    🔍 絞り込み・検索
                 </div>
 
                 <div class="flex flex-wrap gap-2 flex-grow sm:flex-grow-0 text-xs">
@@ -229,8 +222,7 @@
             <!-- 件数ヘッダー -->
             <div class="flex justify-between items-center px-1">
                 <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-sky-500"></i>
-                    過去の活動記録
+                    📜 過去の活動記録
                 </h2>
                 <span id="recordCount" class="text-xs bg-sky-100 text-blue-800 px-3 py-1 rounded-full font-bold">0 件</span>
             </div>
@@ -238,7 +230,6 @@
             <!-- 記録一覧リスト -->
             <div id="activityList" class="space-y-4">
                 <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-sky-200">
-                    <i class="fa-solid fa-spinner fa-spin text-2xl text-sky-400 mb-2"></i>
                     <p class="text-xs">Firestoreからデータを取得しています...</p>
                 </div>
             </div>
@@ -253,11 +244,10 @@
 
     <!-- カスタム通知トースト -->
     <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-green-400"></i>
+        <span id="toastIcon">✅</span>
         <span id="toastMsg" class="text-xs">処理が完了しました</span>
     </div>
 
-    <!-- Firebase Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -305,7 +295,7 @@
             const toastIcon = document.getElementById('toastIcon');
 
             toastMsg.textContent = message;
-            toastIcon.className = isError ? "fa-solid fa-circle-exclamation text-red-400" : "fa-solid fa-circle-check text-green-400";
+            toastIcon.textContent = isError ? "⚠️" : "✅";
             
             toast.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => {
@@ -383,7 +373,7 @@
             }
         });
 
-        // --- 2. Firestore からのリアルタイムデータ取得（アクセス権限エラー対応） ---
+        // --- 2. Firestore からのリアルタイムデータ取得 ---
         function listenToActivities() {
             const activitiesRef = collection(db, 'activities');
 
@@ -400,34 +390,7 @@
                 renderActivities();
             }, (error) => {
                 console.error("Firestore error:", error);
-                const listContainer = document.getElementById('activityList');
-                
-                // Missing or insufficient permissions エラーに対する明確なガイダンス表示
-                listContainer.innerHTML = `
-                    <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-red-800 text-xs shadow-sm">
-                        <div class="flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
-                            <h3 class="font-bold text-sm text-red-900">Firestoreのアクセス権限エラーが発生しました</h3>
-                        </div>
-                        <p class="mb-3 leading-relaxed">
-                            Firebase コンソールの <strong>Firestore セキュリティルール</strong> が許可されていません。
-                        </p>
-                        <div class="bg-white p-3 rounded-xl border border-red-200 font-mono text-[11px] text-slate-700 overflow-x-auto mb-3">
-                            rules_version = '2';<br>
-                            service cloud.firestore {<br>
-                            &nbsp;&nbsp;match /databases/{database}/documents {<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;match /activities/{document=**} {<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true;<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-                            &nbsp;&nbsp;}<br>
-                            }
-                        </div>
-                        <p class="text-[11px] text-red-600">
-                            Firebaseコンソール > Firestore Database > ルール タブで上記のように変更して「公開」をクリックしてください。
-                        </p>
-                    </div>
-                `;
-                showToast("Firestoreのアクセス権限エラーが発生しました", true);
+                showToast("Firestoreからのデータ取得に失敗しました", true);
             });
         }
 
@@ -456,7 +419,7 @@
 
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>送信中...</span>`;
+            submitBtn.innerHTML = `<span>送信中...</span>`;
 
             const newRecord = {
                 clubName: document.getElementById('inputClubName').value.trim(),
@@ -482,7 +445,7 @@
                 showToast("登録に失敗しました: " + err.message, true);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>活動記録を登録する</span>`;
+                submitBtn.innerHTML = `<span>☁️ 活動記録を登録する</span>`;
             }
         });
 
@@ -521,7 +484,6 @@
             if (filtered.length === 0) {
                 listContainer.innerHTML = `
                     <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-sky-200">
-                        <i class="fa-solid fa-folder-open text-4xl text-sky-200 mb-3"></i>
                         <p class="font-bold text-slate-600 text-sm">該当する活動記録がありません</p>
                         <p class="text-xs text-slate-400 mt-1">左側のフォームから新しい記録を入力してみましょう</p>
                     </div>
@@ -537,17 +499,17 @@
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <div class="flex items-center gap-2">
                             <span class="bg-blue-100 text-blue-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
-                                <i class="fa-solid fa-users mr-1"></i>${escapeHtml(item.clubName || '未指定部')}
+                                👥 ${escapeHtml(item.clubName || '未指定部')}
                             </span>
                             <span class="bg-sky-50 text-sky-700 text-[11px] font-bold px-2 py-0.5 rounded-md border border-sky-100">
                                 ${escapeHtml(item.category || '通常練習')}
                             </span>
                         </div>
                         <div class="flex items-center gap-2 text-xs text-slate-400">
-                            <span><i class="fa-regular fa-calendar text-sky-500 mr-1"></i>${item.date}</span>
+                            <span>📅 ${item.date}</span>
                             <button onclick="window.deleteActivity('${item.id}')" title="削除"
                                 class="text-slate-300 hover:text-red-500 p-1 rounded hover:bg-red-50 transition">
-                                <i class="fa-solid fa-trash-can"></i>
+                                🗑️
                             </button>
                         </div>
                     </div>
@@ -558,14 +520,14 @@
 
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-3">
                         <p class="text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
-                            <i class="fa-solid fa-list-check text-sky-500"></i> 活動内容:
+                            📝 活動内容:
                         </p>
                         <p class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.content)}</p>
                     </div>
 
                     <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100">
-                        <span><i class="fa-solid fa-user-pen mr-1"></i>記録者: ${escapeHtml(item.reporter || '匿名')}</span>
-                        <span><i class="fa-solid fa-user-group mr-1"></i>参加: <strong class="text-slate-600">${item.members || 0}</strong>名</span>
+                        <span>🪪 記録者: ${escapeHtml(item.reporter || '匿名')}</span>
+                        <span>👨‍👩‍👧‍👦 参加: <strong class="text-slate-600">${item.members || 0}</strong>名</span>
                     </div>
                 </article>
             `).join('');

@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>部活動活動記録アプリ - clubapp</title>
 
-    <!-- Tailwind CSS for Modern Styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome Icons with crossorigin attributes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js for Attendance Trend Graph -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -33,7 +33,7 @@
 </head>
 <body class="text-slate-700 min-h-screen flex flex-col justify-between">
 
-    <!-- 1. Googleログイン必須ガード画面（未ログイン時に表示） -->
+    <!-- 1. Googleログイン必須ガード画面 -->
     <div id="loginScreen" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-sky-100 transform transition-all">
             <div class="w-20 h-20 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-sky-500/30">
@@ -41,7 +41,7 @@
             </div>
             <h1 class="text-2xl font-black text-slate-800 mb-2">部活動 活動記録ノート</h1>
             <p class="text-xs text-slate-500 mb-8 leading-relaxed">
-                活動の記録・閲覧を行うには、学校または個人の<br><span class="font-bold text-sky-600">Googleアカウント</span>でログインしてください。
+                活動の記録・閲覧を行うには、<br><span class="font-bold text-sky-600">Googleアカウント</span>でログインしてください。
             </p>
 
             <button id="googleLoginBtn" class="w-full py-4 px-6 bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-sky-400 text-slate-700 font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-3 group">
@@ -54,11 +54,26 @@
                 <span class="text-sm group-hover:text-sky-600">Googleアカウントでログイン</span>
             </button>
 
+            <!-- ドメイン未承認エラー用の案内表示エリア -->
+            <div id="unauthorizedDomainNotice" class="hidden mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800">
+                <p class="font-bold flex items-center gap-1.5 text-amber-900 mb-1">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                    承認されていないドメインです
+                </p>
+                <p class="text-[11px] leading-relaxed text-amber-700 mb-2">
+                    Firebase Console の Authentication &gt; 設定 &gt; 承認済みドメイン に現在のドメインを追加するか、テスト用ログインをご利用ください。
+                </p>
+                <button id="testUserLoginBtn" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition text-xs flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-user-check"></i>
+                    テスト用ユーザーとしてログイン (プレビュー用)
+                </button>
+            </div>
+
             <p class="text-[11px] text-slate-400 mt-6">※ログイン情報（名前・メール）は表示および記録者に自動使用されます。</p>
         </div>
     </div>
 
-    <!-- ヘッダー（ログイン後にアクティブ） -->
+    <!-- ヘッダー -->
     <header class="bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
             <div class="flex items-center space-x-3">
@@ -71,7 +86,7 @@
                 </div>
             </div>
 
-            <!-- ログインユーザー表示 & ログアウトボタン（加点機能） -->
+            <!-- ログインユーザー表示 & ログアウトボタン -->
             <div id="userInfoBar" class="hidden items-center space-x-3 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
                 <img id="userAvatar" src="" class="w-7 h-7 rounded-full border border-white" alt="User">
                 <span id="userName" class="text-xs font-semibold text-white truncate max-w-[120px]">---</span>
@@ -85,7 +100,7 @@
     <!-- メインコンテンツ -->
     <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- 左側：5項目入力フォーム（指定要件を満たす入力画面） -->
+        <!-- 左側：5項目入力フォーム -->
         <section class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-sky-100 p-5 self-start">
             <div class="border-b border-sky-100 pb-3 mb-4 flex items-center justify-between">
                 <h2 class="text-base font-bold text-blue-900 flex items-center gap-2">
@@ -97,7 +112,7 @@
 
             <form id="activityForm" class="space-y-4">
 
-                <!-- 1. 部活動名（加点：絞り込み対象） -->
+                <!-- 1. 部活動名 -->
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1 flex items-center justify-between">
                         <span><i class="fa-solid fa-users text-sky-500 mr-1"></i> 1. 部活動名 <span class="text-red-500">*</span></span>
@@ -158,7 +173,7 @@
                         class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:border-sky-400 outline-none transition text-slate-800 placeholder:text-slate-300"></textarea>
                 </div>
 
-                <!-- 記録者（ログインユーザー名を自動取得して固定表示） -->
+                <!-- 記録者（自動取得） -->
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs text-slate-500 flex items-center justify-between">
                     <span><i class="fa-solid fa-id-badge text-sky-500 mr-1"></i> 記録者 (自動設定):</span>
                     <span id="formReporterName" class="font-bold text-slate-700">ログイン中ユーザー</span>
@@ -176,7 +191,7 @@
         <!-- 右側：データ一覧・推移グラフ・検索フィルター -->
         <section class="lg:col-span-7 flex flex-col gap-5">
 
-            <!-- 加点機能：参加人数推移グラフ -->
+            <!-- 参加人数推移グラフ -->
             <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-4">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -190,7 +205,7 @@
                 </div>
             </div>
 
-            <!-- 加点機能：部活動名絞り込み & 並び替えフィルター -->
+            <!-- フィルター設定 -->
             <div class="bg-white rounded-2xl shadow-sm border border-sky-100 p-4 flex flex-wrap gap-3 items-center justify-between">
                 <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
                     <i class="fa-solid fa-filter text-sky-500"></i>
@@ -242,7 +257,7 @@
         <span id="toastMsg" class="text-xs">処理が完了しました</span>
     </div>
 
-    <!-- Firebase Standard Imports & Logic -->
+    <!-- Firebase Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -262,7 +277,7 @@
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 課題指定の Firebase 設定情報
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDZWPWbbw5S8pf9l0Y5E9htO1YPV-NdNDY",
             authDomain: "clubapp3-2f26f.firebaseapp.com",
@@ -272,7 +287,7 @@
             appId: "1:341728980622:web:b537beb24f8347626ba3df"
         };
 
-        // Firebase 初期化
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -282,10 +297,8 @@
         let allActivities = [];
         let chartInstance = null;
 
-        // 今日の日付を初期値にセット
         document.getElementById('inputDate').value = new Date().toISOString().substring(0, 10);
 
-        // トースト通知関数
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
@@ -304,47 +317,73 @@
         const loginScreen = document.getElementById('loginScreen');
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
+        const unauthorizedDomainNotice = document.getElementById('unauthorizedDomainNotice');
+        const testUserLoginBtn = document.getElementById('testUserLoginBtn');
 
         googleLoginBtn.addEventListener('click', async () => {
             try {
+                unauthorizedDomainNotice.classList.add('hidden');
                 await signInWithPopup(auth, provider);
                 showToast("Googleでログインしました！");
             } catch (error) {
                 console.error("Login failed", error);
-                showToast("ログインに失敗しました: " + error.message, true);
+                if (error.code === 'auth/unauthorized-domain' || error.message.includes('unauthorized-domain')) {
+                    unauthorizedDomainNotice.classList.remove('hidden');
+                    showToast("ドメインが未承認のため、テストログインを試してください", true);
+                } else {
+                    showToast("ログインに失敗しました: " + error.message, true);
+                }
             }
+        });
+
+        // 開発・プレビュー用の模擬ユーザーログイン
+        testUserLoginBtn?.addEventListener('click', () => {
+            const mockUser = {
+                uid: "test-user-12345",
+                displayName: "テスト部員（プレビュー）",
+                email: "test.member@example.com",
+                photoURL: "https://ui-avatars.com/api/?name=Test+User&background=0284c7&color=fff"
+            };
+            handleUserLoggedIn(mockUser);
+            showToast("テストユーザーとしてログインしました！");
         });
 
         logoutBtn.addEventListener('click', async () => {
             if (confirm("ログアウトしてもよろしいですか？")) {
-                await signOut(auth);
+                try {
+                    await signOut(auth);
+                } catch(e) {}
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                document.getElementById('userInfoBar').classList.add('hidden');
                 showToast("ログアウトしました");
             }
         });
 
-        // ログイン状態の自動監視ガード
-        onAuthStateChanged(auth, (user) => {
+        function handleUserLoggedIn(user) {
             currentUser = user;
-            if (user) {
-                // ログイン完了：専用画面を閉じ本画面を表示
-                loginScreen.classList.add('hidden');
-                document.getElementById('userInfoBar').classList.remove('hidden');
-                document.getElementById('userInfoBar').classList.add('flex');
-                
-                document.getElementById('userName').textContent = user.displayName || user.email;
-                document.getElementById('formReporterName').textContent = user.displayName || user.email;
-                document.getElementById('userAvatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}`;
+            loginScreen.classList.add('hidden');
+            document.getElementById('userInfoBar').classList.remove('hidden');
+            document.getElementById('userInfoBar').classList.add('flex');
+            
+            document.getElementById('userName').textContent = user.displayName || user.email;
+            document.getElementById('formReporterName').textContent = user.displayName || user.email;
+            document.getElementById('userAvatar').src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'U')}`;
 
-                // Firestoreのデータリスナーを開始
-                listenToActivities();
-            } else {
-                // 未ログイン：ガード画面を表示
+            listenToActivities();
+        }
+
+        // ログイン状態の自動監視
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleUserLoggedIn(user);
+            } else if (!currentUser) {
                 loginScreen.classList.remove('hidden');
                 document.getElementById('userInfoBar').classList.add('hidden');
             }
         });
 
-        // --- 2. Firestore からのリアルタイムデータ取得（永続化） ---
+        // --- 2. Firestore からのリアルタイムデータ取得（アクセス権限エラー対応） ---
         function listenToActivities() {
             const activitiesRef = collection(db, 'activities');
 
@@ -357,14 +396,38 @@
                     });
                 });
 
-                // フィルターの「部活動名」選択肢を動的に生成
                 updateClubFilterOptions();
-
-                // 画面描画 & グラフ更新
                 renderActivities();
             }, (error) => {
                 console.error("Firestore error:", error);
-                showToast("データの取得権限がありません。Firestoreのルールを確認してください", true);
+                const listContainer = document.getElementById('activityList');
+                
+                // Missing or insufficient permissions エラーに対する明確なガイダンス表示
+                listContainer.innerHTML = `
+                    <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-red-800 text-xs shadow-sm">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
+                            <h3 class="font-bold text-sm text-red-900">Firestoreのアクセス権限エラーが発生しました</h3>
+                        </div>
+                        <p class="mb-3 leading-relaxed">
+                            Firebase コンソールの <strong>Firestore セキュリティルール</strong> が許可されていません。
+                        </p>
+                        <div class="bg-white p-3 rounded-xl border border-red-200 font-mono text-[11px] text-slate-700 overflow-x-auto mb-3">
+                            rules_version = '2';<br>
+                            service cloud.firestore {<br>
+                            &nbsp;&nbsp;match /databases/{database}/documents {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;match /activities/{document=**} {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if true;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                        <p class="text-[11px] text-red-600">
+                            Firebaseコンソール > Firestore Database > ルール タブで上記のように変更して「公開」をクリックしてください。
+                        </p>
+                    </div>
+                `;
+                showToast("Firestoreのアクセス権限エラーが発生しました", true);
             });
         }
 
@@ -373,7 +436,6 @@
             const select = document.getElementById('filterClub');
             const currentVal = select.value;
 
-            // ユニークな部活動名を取得
             const clubNames = [...new Set(allActivities.map(a => a.clubName).filter(Boolean))];
 
             select.innerHTML = `<option value="ALL">すべての部活動</option>` + 
@@ -396,15 +458,14 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>送信中...</span>`;
 
-            // 入力データの取得（要件5項目＋加点項目）
             const newRecord = {
-                clubName: document.getElementById('inputClubName').value.trim(), // 1. 部活動名
-                date: document.getElementById('inputDate').value,                // 2. 活動日
-                members: parseInt(document.getElementById('inputMembers').value) || 0, // 参加人数
-                category: document.getElementById('inputCategory').value,        // 3. 活動区分
-                title: document.getElementById('inputTitle').value.trim(),       // 4. 本日のテーマ
-                content: document.getElementById('inputContent').value.trim(),   // 5. 活動内容
-                reporter: currentUser.displayName || currentUser.email,          // 自動取得ユーザー名
+                clubName: document.getElementById('inputClubName').value.trim(),
+                date: document.getElementById('inputDate').value,
+                members: parseInt(document.getElementById('inputMembers').value) || 0,
+                category: document.getElementById('inputCategory').value,
+                title: document.getElementById('inputTitle').value.trim(),
+                content: document.getElementById('inputContent').value.trim(),
+                reporter: currentUser.displayName || currentUser.email,
                 reporterUid: currentUser.uid,
                 createdAt: serverTimestamp()
             };
@@ -414,7 +475,6 @@
                 await addDoc(activitiesRef, newRecord);
                 showToast("活動記録を登録しました！");
 
-                // 入力内容をリセット（部活動名と日付は利便性のため保持）
                 document.getElementById('inputTitle').value = '';
                 document.getElementById('inputContent').value = '';
             } catch (err) {
@@ -426,9 +486,9 @@
             }
         });
 
-        // --- 4. データ削除機能（加点機能） ---
+        // --- 4. データ削除機能 ---
         window.deleteActivity = async function(id) {
-            if (!confirm("この活動記録を削除しますか？（削除後は復元できません）")) return;
+            if (!confirm("この活動記録を削除しますか？")) return;
 
             try {
                 const docRef = doc(db, 'activities', id);
@@ -446,12 +506,10 @@
             const filterClub = document.getElementById('filterClub').value;
             const sortOrder = document.getElementById('sortOrder').value;
 
-            // 部活動名フィルター
             let filtered = allActivities.filter(item => {
                 return (filterClub === 'ALL' || item.clubName === filterClub);
             });
 
-            // 日付順ソート（並び替え）
             filtered.sort((a, b) => {
                 const dateA = new Date(a.date || 0);
                 const dateB = new Date(b.date || 0);
@@ -460,7 +518,6 @@
 
             document.getElementById('recordCount').textContent = `${filtered.length} 件`;
 
-            // 空の状態のUI
             if (filtered.length === 0) {
                 listContainer.innerHTML = `
                     <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-dashed border-sky-200">
@@ -473,7 +530,6 @@
                 return;
             }
 
-            // カード一覧描画
             listContainer.innerHTML = filtered.map(item => `
                 <article class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-sky-100 p-5 transition relative overflow-hidden group">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-blue-500 to-sky-400"></div>
@@ -514,7 +570,6 @@
                 </article>
             `).join('');
 
-            // グラフの更新
             updateChart(filtered);
         }
 
@@ -522,8 +577,7 @@
         function updateChart(data) {
             const ctx = document.getElementById('attendanceChart').getContext('2d');
             
-            // 日付順（古い順）に整列してグラフ表示
-            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-10); // 直近10件
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-10);
             const labels = sortedData.map(d => d.date ? d.date.substring(5) : '');
             const members = sortedData.map(d => d.members || 0);
 
@@ -563,46 +617,9 @@
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // イベントリスナー設定
         document.getElementById('filterClub').addEventListener('change', renderActivities);
         document.getElementById('sortOrder').addEventListener('change', renderActivities);
 
     </script>
 </body>
 </html>
-```
-
----
-
-### 次のステップ（課題提出手順）
-
-提出手順（Firebase & GitHub）も迷わないようにまとめました！
-
-#### Step 1: Firebase コンソールでの設定
-1. [Firebase Console](https://console.firebase.google.com/) で `clubapp3-2f26f` を開きます。
-2. **Authentication** > **Sign-in method** で **Google ログインを有効化**します。
-3. **Firestore Database** の **ルール (Rules)** タブで読み書きを許可します：
-   ```javascript
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /{document=**} {
-         allow read, write: if true;
-       }
-     }
-   }
-   ```
-
-#### Step 2: GitHub にアップロード (`clubapp`)
-1. GitHub で **`clubapp`** という名前の新しいリポジトリを作成します。
-2. 上記の HTML コードを `index.html` という名前で保存してアップロードします。
-
-#### Step 3: Firebase Hosting で公開
-ターミナルで以下を実行します：
-```bash
-firebase login
-firebase init hosting
-# (質問には index.html がある場所を指定)
-firebase deploy
-```
-発行された `https://clubapp3-2f26f.web.app` のような URL でいつでもどこからでもアクセスできるようになります！
